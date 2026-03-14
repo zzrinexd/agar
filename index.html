@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -374,16 +375,18 @@
         
         /* Stats tab - horizontal layout */
         #pauseTabStats{
-            display:flex;
             flex-direction:row;
             gap:30px;
             align-items:flex-start;
         }
-        #pauseStats{
+        #pauseTabStats.active{
             display:flex;
-            flex-direction:column;
+        }
+        #pauseStats{
+            display:grid;
+            grid-template-columns:1fr 1fr;
             gap:15px;
-            min-width:200px;
+            min-width:240px;
         }
         #pauseStats .stat{
             background:rgba(0,0,0,.3);
@@ -409,6 +412,7 @@
             border-radius:16px;
             padding:20px;
             flex:1;
+            min-width:0;
             border:1px solid rgba(78,205,196,.15);
         }
         #graphContainer h4{
@@ -428,9 +432,11 @@
         
         /* Settings tab - horizontal layout */
         #pauseTabSettings{
-            display:flex;
             flex-wrap:wrap;
             gap:20px;
+        }
+        #pauseTabSettings.active{
+            display:flex;
         }
         .pauseSettingsSection{
             background:rgba(0,0,0,.2);
@@ -1763,8 +1769,8 @@
         function isPlayerProtected(){return player&&player.alive&&player.getTotalMass()<CONFIG.BOT_IGNORE_PLAYER_BELOW}
         function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;minimapCanvas.width=170;minimapCanvas.height=170}
 
-        function resizeScoreGraph(){const c=document.getElementById('graphContainer');const dpr=window.devicePixelRatio||1;let w=c.offsetWidth-30;if(w<=0)w=400;scoreGraphCanvas.width=Math.floor(w*dpr);scoreGraphCanvas.height=Math.floor(150*dpr);scoreGraphCanvas.style.width=w+'px';scoreGraphCanvas.style.height='150px'}
-        function resizeDeathGraph(){const c=document.getElementById('deathGraphContainer');const dpr=window.devicePixelRatio||1;let w=c.offsetWidth-40;if(w<=0)w=400;deathGraphCanvas.width=Math.floor(w*dpr);deathGraphCanvas.height=Math.floor(120*dpr);deathGraphCanvas.style.width=w+'px';deathGraphCanvas.style.height='120px'}
+        function resizeScoreGraph(){const dpr=window.devicePixelRatio||1;let w=scoreGraphCanvas.clientWidth;let h=scoreGraphCanvas.clientHeight;if(w<=0)w=400;if(h<=0)h=180;scoreGraphCanvas.width=Math.floor(w*dpr);scoreGraphCanvas.height=Math.floor(h*dpr);}
+        function resizeDeathGraph(){const dpr=window.devicePixelRatio||1;let w=deathGraphCanvas.clientWidth;let h=deathGraphCanvas.clientHeight;if(w<=0)w=400;if(h<=0)h=120;deathGraphCanvas.width=Math.floor(w*dpr);deathGraphCanvas.height=Math.floor(h*dpr);}
         function resizeMiniGraph(){const container=document.getElementById('miniGraphContainer');if(!container)return;const w=container.clientWidth,h=container.clientHeight;if(w>0&&h>0){miniGraphCanvas.width=w;miniGraphCanvas.height=h;miniGraphCanvas.style.width=w+'px';miniGraphCanvas.style.height=h+'px'}}
 
         window.addEventListener('resize',resize);resize();
