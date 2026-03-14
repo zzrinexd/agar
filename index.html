@@ -2,16 +2,218 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Agar.io Clone</title>
     <style>
-        /* (mismos estilos, sin cambios) */
-        *{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}
-        body{background:#111;overflow:hidden;font-family:'Ubuntu','Segoe UI',Arial,sans-serif}
-        canvas#gameCanvas{display:block;cursor:default;position:fixed;top:0;left:0}
+        /* ============ ESTILOS BASE ============ */
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+        body{background:#111;overflow:hidden;font-family:'Ubuntu','Segoe UI',Arial,sans-serif;position:fixed;width:100%;height:100%}
+        canvas#gameCanvas{display:block;position:fixed;top:0;left:0;width:100%;height:100%;z-index:1}
 
-        /* ============ START SCREEN ============ */
-        #startScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(5,5,20,.97),rgba(10,10,40,.97));display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;overflow:hidden}
+        /* ============ BOTÓN DE PANTALLA COMPLETA ============ */
+        #fullscreenBtn{
+            position:fixed;
+            top:10px;
+            left:10px;
+            z-index:200;
+            background:rgba(0,0,0,0.6);
+            backdrop-filter:blur(4px);
+            color:#fff;
+            border:2px solid rgba(255,255,255,0.3);
+            border-radius:30px;
+            padding:8px 18px;
+            font-size:16px;
+            font-weight:bold;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            gap:5px;
+            transition:all 0.2s;
+            pointer-events:auto;
+        }
+        #fullscreenBtn:hover{background:rgba(78,205,196,0.3);border-color:#4ecdc4}
+
+        /* ============ JOYSTICK MÓVIL ============ */
+        #joystickContainer{
+            position:fixed;
+            bottom:30px;
+            left:30px;
+            width:120px;
+            height:120px;
+            z-index:200;
+            display:none;
+            pointer-events:none;
+        }
+        .joystick-base{
+            position:absolute;
+            width:100%;
+            height:100%;
+            background:rgba(0,0,0,0.4);
+            backdrop-filter:blur(4px);
+            border:2px solid rgba(255,255,255,0.3);
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            pointer-events:auto;
+            touch-action:none;
+        }
+        .joystick-thumb{
+            width:50px;
+            height:50px;
+            background:rgba(78,205,196,0.8);
+            border:2px solid white;
+            border-radius:50%;
+            box-shadow:0 0 15px #4ecdc4;
+            transition:transform 0.05s;
+            will-change:transform;
+        }
+
+        /* ============ BOTONES DE ACCIÓN MÓVIL ============ */
+        #mobileControls{
+            position:fixed;
+            bottom:30px;
+            right:30px;
+            display:none;
+            flex-direction:column;
+            gap:12px;
+            z-index:200;
+            pointer-events:none;
+        }
+        .mobile-btn{
+            width:70px;
+            height:70px;
+            border-radius:50%;
+            background:rgba(0,0,0,0.6);
+            backdrop-filter:blur(4px);
+            border:3px solid rgba(255,255,255,0.3);
+            color:white;
+            font-size:28px;
+            font-weight:bold;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            pointer-events:auto;
+            transition:all 0.1s;
+            box-shadow:0 4px 10px rgba(0,0,0,0.5);
+            touch-action:manipulation;
+            -webkit-tap-highlight-color:transparent;
+        }
+        .mobile-btn:active{
+            transform:scale(0.9);
+            background:#4ecdc4;
+            border-color:white;
+        }
+        .mobile-btn.split{background:rgba(255,107,107,0.8);color:#fff;font-size:24px}
+        .mobile-btn.eject{background:rgba(255,215,0,0.8);color:#000;font-size:32px;line-height:1}
+
+        /* ============ HUD AJUSTADO ============ */
+        #hud{position:fixed;top:60px;left:50%;transform:translateX(-50%);color:#fff;font-size:16px;z-index:50;pointer-events:none;text-align:center;text-shadow:0 0 4px rgba(0,0,0,.8)}
+        #scoreDisplay{background:rgba(0,0,0,.4);padding:8px 25px;border-radius:30px;font-weight:bold;font-size:20px;border:1px solid rgba(255,255,255,0.2)}
+        #massBreakdown{font-size:12px;color:rgba(255,255,255,.6);margin-top:5px}
+
+        /* ============ LEADERBOARD MÓVIL ============ */
+        #leaderboard{
+            position:fixed;
+            top:10px;
+            right:10px;
+            background:rgba(0,0,0,.6);
+            backdrop-filter:blur(4px);
+            color:#fff;
+            padding:12px 15px;
+            border-radius:12px;
+            z-index:50;
+            min-width:150px;
+            pointer-events:none;
+            border:1px solid rgba(255,255,255,0.15);
+        }
+
+        /* ============ MINIMAP MÓVIL ============ */
+        #minimap{
+            position:fixed;
+            bottom:20px;
+            right:20px;
+            width:130px;
+            height:130px;
+            z-index:50;
+            pointer-events:none;
+            border-radius:50%;
+            box-shadow:0 0 15px rgba(0,0,0,.8);
+            background:#0d0d1a;
+            border:2px solid rgba(255,255,255,0.2);
+        }
+
+        /* ============ BOTÓN PAUSA ============ */
+        #pauseBtn{
+            position:fixed;
+            top:10px;
+            left:50%;
+            transform:translateX(-50%);
+            z-index:60;
+            padding:8px 25px;
+            border-radius:30px;
+            border:2px solid rgba(255,255,255,.3);
+            background:rgba(0,0,0,.6);
+            backdrop-filter:blur(4px);
+            color:#fff;
+            font-size:16px;
+            font-weight:bold;
+            cursor:pointer;
+            transition:all .2s;
+            display:none;
+            pointer-events:auto;
+            white-space:nowrap;
+        }
+        #pauseBtn:active{background:rgba(78,205,196,0.4);border-color:#4ecdc4}
+
+        /* ============ MEDIA QUERIES MÓVIL ============ */
+        @media(max-width:768px){
+            #joystickContainer{display:block;width:100px;height:100px;bottom:20px;left:20px}
+            .joystick-thumb{width:40px;height:40px}
+            #mobileControls{display:flex;bottom:20px;right:20px;gap:8px}
+            .mobile-btn{width:60px;height:60px;font-size:24px}
+            .mobile-btn.split{font-size:20px}
+            .mobile-btn.eject{font-size:28px}
+            
+            #hud{top:70px}
+            #scoreDisplay{font-size:16px;padding:6px 18px}
+            #massBreakdown{font-size:10px}
+            
+            #leaderboard{min-width:120px;padding:8px 10px;font-size:12px}
+            #leaderboard h3{font-size:13px;margin-bottom:5px}
+            .leaderEntry{font-size:10px}
+            
+            #minimap{width:100px;height:100px;bottom:15px;right:15px}
+            
+            #pauseBtn{font-size:14px;padding:6px 18px}
+            
+            #fullscreenBtn{padding:6px 12px;font-size:14px}
+            
+            /* Ajustes menús */
+            .settingsBody{padding:15px}
+            .settingsSection{padding:15px}
+            .mainMenuBtns{width:260px}
+            .menuBtn{padding:14px 20px;font-size:16px}
+        }
+
+        @media(max-width:480px){
+            #joystickContainer{width:80px;height:80px}
+            .joystick-thumb{width:35px;height:35px}
+            .mobile-btn{width:55px;height:55px;font-size:22px}
+            
+            #minimap{width:80px;height:80px}
+            #leaderboard{min-width:100px;padding:6px 8px}
+            
+            #fullscreenBtn{top:5px;left:5px;padding:5px 10px;font-size:12px}
+            
+            #pauseBtn{top:5px;padding:5px 15px;font-size:12px}
+            
+            #hud{top:50px}
+        }
+
+        /* ============ RESTO DE ESTILOS SIN CAMBIOS ============ */
+        /* Mantenemos todos los estilos originales que no se modifican */
         #startScreen::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at 30% 20%,rgba(78,205,196,.08) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(255,107,107,.06) 0%,transparent 50%);pointer-events:none}
         #startScreen canvas#bgCanvas{position:absolute;top:0;left:0;width:100%;height:100%;opacity:.3;pointer-events:none}
         .startContent{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center}
@@ -31,183 +233,39 @@
         .menuBtn.danger:hover{background:rgba(255,107,107,.25);transform:scale(1.02)}
         .menuBtnIcon{margin-right:10px;font-size:22px}
         #startVersion{color:rgba(255,255,255,.15);font-size:11px;margin-top:30px;letter-spacing:1px}
-
-        /* ============ SETTINGS SCREEN - REDISEÑADA ============ */
-        #settingsScreen{
-            position:fixed;
-            top:0;
-            left:0;
-            width:100%;
-            height:100%;
-            background:rgba(5,5,20,0.85);
-            backdrop-filter:blur(8px);
-            display:none;
-            flex-direction:column;
-            z-index:101;
-            overflow:hidden;
-        }
-        #settingsScreen::before{
-            content:'';
-            position:absolute;
-            top:0;
-            left:0;
-            width:100%;
-            height:100%;
-            background:radial-gradient(ellipse at center,rgba(78,205,196,.08) 0%,transparent 70%);
-            pointer-events:none;
-        }
-        .settingsHeader{
-            display:flex;
-            align-items:center;
-            padding:20px 30px;
-            border-bottom:1px solid rgba(255,255,255,.08);
-            background:rgba(10,10,20,0.5);
-            backdrop-filter:blur(4px);
-            position:relative;
-            z-index:2;
-        }
-        .settingsBackBtn{
-            background:none;
-            border:none;
-            color:rgba(255,255,255,.6);
-            font-size:28px;
-            cursor:pointer;
-            padding:5px 15px;
-            border-radius:8px;
-            transition:all .2s;
-        }
+        
+        /* Settings Screen */
+        #settingsScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(5,5,20,0.85);backdrop-filter:blur(8px);display:none;flex-direction:column;z-index:101;overflow:hidden}
+        #settingsScreen::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at center,rgba(78,205,196,.08) 0%,transparent 70%);pointer-events:none}
+        .settingsHeader{display:flex;align-items:center;padding:20px 30px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(10,10,20,0.5);backdrop-filter:blur(4px);position:relative;z-index:2}
+        .settingsBackBtn{background:none;border:none;color:rgba(255,255,255,.6);font-size:28px;cursor:pointer;padding:5px 15px;border-radius:8px;transition:all .2s}
         .settingsBackBtn:hover{color:#fff;background:rgba(255,255,255,.1)}
         .settingsTitle{color:#fff;font-size:26px;font-weight:bold;margin-left:15px;letter-spacing:2px}
-        
-        .settingsBody{
-            flex:1;
-            padding:30px;
-            max-width:900px;
-            margin:0 auto;
-            width:100%;
-            overflow-y:auto;
-            position:relative;
-            z-index:2;
-            display:flex;
-            flex-wrap:wrap;
-            gap:20px;
-            align-content:flex-start;
-        }
-        .settingsSection{
-            background:rgba(20,20,40,0.7);
-            backdrop-filter:blur(4px);
-            border:1px solid rgba(78,205,196,.2);
-            border-radius:16px;
-            padding:20px 25px;
-            flex:1 1 calc(50% - 20px);
-            min-width:300px;
-            box-shadow:0 10px 30px rgba(0,0,0,.5);
-        }
-        .settingsSectionTitle{
-            color:#4ecdc4;
-            font-size:15px;
-            font-weight:bold;
-            text-transform:uppercase;
-            letter-spacing:1.5px;
-            margin-bottom:18px;
-            display:flex;
-            align-items:center;
-            gap:8px;
-        }
+        .settingsBody{flex:1;padding:30px;max-width:900px;margin:0 auto;width:100%;overflow-y:auto;position:relative;z-index:2;display:flex;flex-wrap:wrap;gap:20px;align-content:flex-start}
+        .settingsSection{background:rgba(20,20,40,0.7);backdrop-filter:blur(4px);border:1px solid rgba(78,205,196,.2);border-radius:16px;padding:20px 25px;flex:1 1 calc(50% - 20px);min-width:300px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+        .settingsSectionTitle{color:#4ecdc4;font-size:15px;font-weight:bold;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:18px;display:flex;align-items:center;gap:8px}
         .settingsSectionTitle .icon{font-size:18px}
-        .configRow{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            margin-bottom:14px;
-            color:rgba(255,255,255,.9);
-            font-size:14px;
-        }
+        .configRow{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;color:rgba(255,255,255,.9);font-size:14px}
         .configRow:last-child{margin-bottom:0}
         .configRow .label{flex:1}
-        .configRow select{
-            background:rgba(0,0,0,.5);
-            border:1px solid rgba(78,205,196,.5);
-            color:#fff;
-            padding:7px 14px;
-            border-radius:10px;
-            outline:none;
-            cursor:pointer;
-            min-width:140px;
-            font-size:13px;
-        }
+        .configRow select{background:rgba(0,0,0,.5);border:1px solid rgba(78,205,196,.5);color:#fff;padding:7px 14px;border-radius:10px;outline:none;cursor:pointer;min-width:140px;font-size:13px}
         .configRow select option{background:#1a1a2e}
-        .configRow input[type="range"]{
-            width:160px;
-            background:transparent;
-            cursor:pointer;
-            -webkit-appearance:none;
-            appearance:none;
-            height:20px;
-        }
-        .configRow input[type="range"]::-webkit-slider-runnable-track{
-            height:5px;
-            background:rgba(78,205,196,.3);
-            border-radius:3px;
-        }
-        .configRow input[type="range"]::-webkit-slider-thumb{
-            -webkit-appearance:none;
-            width:16px;
-            height:16px;
-            border-radius:50%;
-            background:#4ecdc4;
-            margin-top:-5.5px;
-            box-shadow:0 0 8px rgba(78,205,196,.4);
-        }
-        .configRow input[type="range"]::-moz-range-track{
-            height:5px;
-            background:rgba(78,205,196,.3);
-            border-radius:3px;
-            border:none;
-        }
-        .configRow input[type="range"]::-moz-range-thumb{
-            width:16px;
-            height:16px;
-            border-radius:50%;
-            background:#4ecdc4;
-            border:none;
-            box-shadow:0 0 8px rgba(78,205,196,.4);
-        }
-        .configRow .val{
-            color:#4ecdc4;
-            font-weight:bold;
-            min-width:45px;
-            text-align:right;
-            font-size:13px;
-        }
-        .qualityPreset{
-            display:flex;
-            gap:10px;
-            margin-bottom:18px;
-            justify-content:center;
-            flex-wrap:wrap;
-        }
-        .qualityBtn{
-            padding:10px 22px;
-            border:none;
-            border-radius:10px;
-            background:rgba(255,255,255,.1);
-            color:rgba(255,255,255,.8);
-            font-size:13px;
-            font-weight:bold;
-            cursor:pointer;
-            transition:all .25s;
-            border:2px solid transparent;
-            letter-spacing:.5px;
-        }
+        .configRow input[type="range"]{width:160px;background:transparent;cursor:pointer;-webkit-appearance:none;appearance:none;height:20px}
+        .configRow input[type="range"]::-webkit-slider-runnable-track{height:5px;background:rgba(78,205,196,.3);border-radius:3px}
+        .configRow input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#4ecdc4;margin-top:-5.5px;box-shadow:0 0 8px rgba(78,205,196,.4)}
+        .configRow input[type="range"]::-moz-range-track{height:5px;background:rgba(78,205,196,.3);border-radius:3px;border:none}
+        .configRow input[type="range"]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#4ecdc4;border:none;box-shadow:0 0 8px rgba(78,205,196,.4)}
+        .configRow .val{color:#4ecdc4;font-weight:bold;min-width:45px;text-align:right;font-size:13px}
+        .qualityPreset{display:flex;gap:10px;margin-bottom:18px;justify-content:center;flex-wrap:wrap}
+        .qualityBtn{padding:10px 22px;border:none;border-radius:10px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);font-size:13px;font-weight:bold;cursor:pointer;transition:all .25s;border:2px solid transparent;letter-spacing:.5px}
         .qualityBtn:hover{background:rgba(78,205,196,.2);color:#fff}
         .qualityBtn.active{color:#000;border-color:rgba(255,255,255,.3)}
         .qualityBtn.low.active{background:#ff6b6b}
         .qualityBtn.medium.active{background:#feca57}
         .qualityBtn.high.active{background:#4ecdc4}
         .qualityBtn.ultra.active{background:#a55eea;color:#fff}
-
-        /* ============ PLAY SETUP SCREEN ============ */
+        
+        /* Play Setup */
         #playSetupScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,rgba(5,5,20,.98),rgba(10,10,40,.98));display:none;flex-direction:column;z-index:101;overflow-y:auto}
         .setupBody{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 30px;gap:15px}
         .setupSection{background:rgba(20,20,50,.6);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:20px 25px;width:100%;max-width:450px}
@@ -229,31 +287,8 @@
         #startPlayBtn{width:100%;max-width:450px;padding:16px;font-size:22px;font-weight:bold;border:none;border-radius:14px;background:linear-gradient(135deg,#4ecdc4,#44a08d);color:#fff;cursor:pointer;transition:all .3s;letter-spacing:3px;text-transform:uppercase;box-shadow:0 4px 25px rgba(78,205,196,.3)}
         #startPlayBtn:hover{transform:scale(1.03);box-shadow:0 6px 35px rgba(78,205,196,.5)}
         #controlsInfo{color:rgba(255,255,255,.3);font-size:11px;text-align:center;line-height:1.7;max-width:450px}
-
-        /* ============ HUD ============ */
-        #hud{position:fixed;top:50px;left:50%;transform:translateX(-50%);color:#fff;font-size:16px;z-index:50;pointer-events:none;text-align:center;text-shadow:0 0 4px rgba(0,0,0,.8)}
-        #scoreDisplay{background:rgba(0,0,0,.4);padding:6px 20px;border-radius:20px;font-weight:bold;font-size:18px}
-        #massBreakdown{font-size:11px;color:rgba(255,255,255,.5);margin-top:3px}
-        #protectionIndicator{font-size:10px;color:#4ecdc4;margin-top:3px;opacity:0;transition:opacity .3s}
-        #protectionIndicator.active{opacity:1}
-        #boostIndicator{font-size:10px;color:#ff6b6b;margin-top:3px;opacity:0;transition:opacity .3s}
-        #boostIndicator.active{opacity:1;animation:boostPulse .5s infinite}
-        @keyframes boostPulse{0%,100%{opacity:1}50%{opacity:.6}}
-
-        /* ============ LEADERBOARD ============ */
-        #leaderboard{position:fixed;top:10px;right:10px;background:rgba(0,0,0,.55);color:#fff;padding:12px 18px;border-radius:8px;z-index:50;min-width:180px;pointer-events:none}
-        #leaderboard h3{text-align:center;margin-bottom:8px;font-size:15px;border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:6px}
-        .leaderEntry{display:flex;align-items:center;padding:2px 0;font-size:12px;line-height:1.7}
-        .leaderEntry .rank{width:22px;color:rgba(255,255,255,.4)}
-        .leaderEntry .lname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .leaderEntry .lscore{color:rgba(255,255,255,.5);margin-left:8px;font-size:11px}
-        .leaderEntry .lcolor{width:8px;height:8px;border-radius:50%;margin-right:6px;flex-shrink:0}
-        .leaderEntry.me .lname{color:#4ecdc4;font-weight:bold}
-
-        /* ============ MINIMAP ============ */
-        #minimap{position:fixed;bottom:10px;right:10px;width:170px;height:170px;z-index:50;pointer-events:none;border-radius:50%;box-shadow:0 0 15px rgba(0,0,0,.8);background:#0d0d1a}
-
-        /* ============ DEATH SCREEN (con scroll) ============ */
+        
+        /* Death Screen */
         #deathScreen{position:fixed;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;justify-content:center;align-items:center;z-index:100;overflow-y:auto;padding:20px}
         #deathScreen::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at center,rgba(40,0,0,.92) 0%,rgba(0,0,0,.96) 70%);pointer-events:none}
         .deathContent{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;animation:deathFadeIn .6s ease-out;max-height:90vh;overflow-y:auto;padding:20px;width:100%;max-width:600px}
@@ -263,7 +298,6 @@
         #deathScreen .killedBy span{color:#ff6b6b;font-weight:bold}
         #deathStats{display:flex;gap:15px;margin-bottom:25px;flex-wrap:wrap;justify-content:center}
         #deathStats .stat{text-align:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:15px 20px;min-width:110px;transition:transform .2s}
-        #deathStats .stat:hover{transform:translateY(-3px)}
         #deathStats .stat .val{font-size:32px;color:#fff;font-weight:bold;text-shadow:0 0 10px rgba(255,255,255,.1)}
         #deathStats .stat .lbl{font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
         #deathGraphContainer{background:rgba(20,20,40,.7);border:1px solid rgba(255,107,107,.2);border-radius:14px;padding:18px 22px;margin-bottom:25px;max-width:520px;width:100%}
@@ -275,311 +309,73 @@
         #respawnBtn:hover{transform:scale(1.05);box-shadow:0 6px 30px rgba(255,107,107,.5)}
         #menuBtn{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.15)}
         #menuBtn:hover{transform:scale(1.05);background:rgba(255,255,255,.12)}
-
-        /* ============ PAUSE SCREEN - REDISEÑADA ============ */
-        #pauseBtn{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:60;padding:8px 20px;border-radius:20px;border:2px solid rgba(255,255,255,.3);background:rgba(0,0,0,.5);color:#fff;font-size:14px;font-weight:bold;cursor:pointer;backdrop-filter:blur(4px);transition:all .2s;display:none}
-        #pauseBtn:hover{background:rgba(255,255,255,.15);border-color:#fff}
         
-        #pauseOverlay{
-            position:fixed;
-            top:0;
-            left:0;
-            width:100%;
-            height:100%;
-            display:none;
-            flex-direction:column;
-            justify-content:center;
-            align-items:center;
-            z-index:150;
-            cursor:pointer;
-            overflow:hidden;
-        }
-        #pauseOverlay::before{
-            content:'';
-            position:absolute;
-            top:0;
-            left:0;
-            width:100%;
-            height:100%;
-            background:radial-gradient(ellipse at center,rgba(10,10,30,.85) 0%,rgba(0,0,0,.9) 70%);
-            backdrop-filter:blur(12px);
-            pointer-events:none;
-        }
-        .pauseContent{
-            position:relative;
-            z-index:2;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            animation:pauseFadeIn .35s ease-out;
-            cursor:default;
-            padding:30px;
-            max-width:1000px;
-            width:95%;
-            max-height:90vh;
-            overflow-y:auto;
-        }
+        /* Pause Overlay */
+        #pauseOverlay{position:fixed;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;justify-content:center;align-items:center;z-index:150;cursor:pointer;overflow:hidden}
+        #pauseOverlay::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:radial-gradient(ellipse at center,rgba(10,10,30,.85) 0%,rgba(0,0,0,.9) 70%);backdrop-filter:blur(12px);pointer-events:none}
+        .pauseContent{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;animation:pauseFadeIn .35s ease-out;cursor:default;padding:30px;max-width:1000px;width:95%;max-height:90vh;overflow-y:auto}
         @keyframes pauseFadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
-        #pauseOverlay h2{
-            font-size:62px;
-            color:#4ecdc4;
-            margin-bottom:5px;
-            text-shadow:0 0 40px rgba(78,205,196,.5);
-            letter-spacing:3px;
-        }
-        #pauseOverlay .pauseSubtitle{
-            color:rgba(255,255,255,.4);
-            font-size:14px;
-            margin-bottom:30px;
-            letter-spacing:2px;
-        }
-        
-        #pausePanel{
-            background:rgba(20,20,40,0.7);
-            backdrop-filter:blur(8px);
-            border:1px solid rgba(78,205,196,.2);
-            border-radius:24px;
-            padding:30px;
-            width:100%;
-            cursor:default;
-            box-shadow:0 20px 60px rgba(0,0,0,.6);
-        }
-        .pauseTabs{
-            display:flex;
-            gap:0;
-            margin-bottom:30px;
-            border-radius:14px;
-            overflow:hidden;
-            border:1px solid rgba(255,255,255,.1);
-            width:fit-content;
-            margin-left:auto;
-            margin-right:auto;
-        }
-        .pauseTab{
-            padding:12px 40px;
-            text-align:center;
-            font-size:15px;
-            font-weight:bold;
-            color:rgba(255,255,255,.6);
-            background:rgba(0,0,0,.3);
-            cursor:pointer;
-            transition:all .2s;
-            letter-spacing:1px;
-            border:none;
-        }
+        #pauseOverlay h2{font-size:62px;color:#4ecdc4;margin-bottom:5px;text-shadow:0 0 40px rgba(78,205,196,.5);letter-spacing:3px}
+        #pauseOverlay .pauseSubtitle{color:rgba(255,255,255,.4);font-size:14px;margin-bottom:30px;letter-spacing:2px}
+        #pausePanel{background:rgba(20,20,40,0.7);backdrop-filter:blur(8px);border:1px solid rgba(78,205,196,.2);border-radius:24px;padding:30px;width:100%;cursor:default;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+        .pauseTabs{display:flex;gap:0;margin-bottom:30px;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.1);width:fit-content;margin-left:auto;margin-right:auto}
+        .pauseTab{padding:12px 40px;text-align:center;font-size:15px;font-weight:bold;color:rgba(255,255,255,.6);background:rgba(0,0,0,.3);cursor:pointer;transition:all .2s;letter-spacing:1px;border:none}
         .pauseTab:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.9)}
         .pauseTab.active{background:rgba(78,205,196,.2);color:#4ecdc4}
         .pauseTabContent{display:none}
         .pauseTabContent.active{display:block}
-        
-        /* Stats tab - horizontal layout */
-        #pauseTabStats{
-            flex-direction:row;
-            gap:30px;
-            align-items:flex-start;
-        }
-        #pauseTabStats.active{
-            display:flex;
-        }
-        #pauseStats{
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:15px;
-            min-width:240px;
-        }
-        #pauseStats .stat{
-            background:rgba(0,0,0,.3);
-            padding:15px 20px;
-            border-radius:16px;
-            text-align:center;
-            border:1px solid rgba(78,205,196,.15);
-        }
-        #pauseStats .stat .val{
-            font-size:26px;
-            color:#fff;
-            font-weight:bold;
-        }
-        #pauseStats .stat .lbl{
-            font-size:11px;
-            color:rgba(255,255,255,.5);
-            text-transform:uppercase;
-            margin-top:5px;
-            letter-spacing:1px;
-        }
-        #graphContainer{
-            background:rgba(0,0,0,.3);
-            border-radius:16px;
-            padding:20px;
-            flex:1;
-            min-width:0;
-            border:1px solid rgba(78,205,196,.15);
-        }
-        #graphContainer h4{
-            color:rgba(255,255,255,.6);
-            font-size:13px;
-            margin-bottom:15px;
-            text-transform:uppercase;
-            letter-spacing:1px;
-            text-align:center;
-        }
-        #scoreGraph{
-            width:100%;
-            height:180px;
-            background:rgba(0,0,0,.2);
-            border-radius:10px;
-        }
-        
-        /* Settings tab - horizontal layout */
-        #pauseTabSettings{
-            flex-wrap:wrap;
-            gap:20px;
-        }
-        #pauseTabSettings.active{
-            display:flex;
-        }
-        .pauseSettingsSection{
-            background:rgba(0,0,0,.2);
-            border-radius:16px;
-            padding:20px;
-            flex:1 1 calc(50% - 20px);
-            min-width:280px;
-            border:1px solid rgba(78,205,196,.1);
-        }
-        .pauseSettingsSection:last-child{margin-bottom:0}
-        .pauseSettingsSectionTitle{
-            color:#4ecdc4;
-            font-size:14px;
-            font-weight:bold;
-            text-transform:uppercase;
-            letter-spacing:1px;
-            margin-bottom:15px;
-        }
-        
-        .pauseBtnRow{
-            display:flex;
-            gap:20px;
-            justify-content:center;
-            margin-top:30px;
-        }
-        #resumeBtn,#pauseMenuBtn{
-            padding:15px 50px;
-            font-size:18px;
-            border:none;
-            border-radius:14px;
-            cursor:pointer;
-            transition:all .3s;
-            font-weight:bold;
-            letter-spacing:1px;
-        }
-        #resumeBtn{
-            background:linear-gradient(135deg,#4ecdc4,#44a08d);
-            color:#fff;
-            box-shadow:0 4px 20px rgba(78,205,196,.3);
-        }
+        #pauseTabStats.active{display:flex;flex-direction:row;gap:30px;align-items:flex-start}
+        #pauseStats{display:grid;grid-template-columns:1fr 1fr;gap:15px;min-width:240px}
+        #pauseStats .stat{background:rgba(0,0,0,.3);padding:15px 20px;border-radius:16px;text-align:center;border:1px solid rgba(78,205,196,.15)}
+        #pauseStats .stat .val{font-size:26px;color:#fff;font-weight:bold}
+        #pauseStats .stat .lbl{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-top:5px;letter-spacing:1px}
+        #graphContainer{background:rgba(0,0,0,.3);border-radius:16px;padding:20px;flex:1;min-width:0;border:1px solid rgba(78,205,196,.15)}
+        #graphContainer h4{color:rgba(255,255,255,.6);font-size:13px;margin-bottom:15px;text-transform:uppercase;letter-spacing:1px;text-align:center}
+        #scoreGraph{width:100%;height:180px;background:rgba(0,0,0,.2);border-radius:10px}
+        #pauseTabSettings.active{display:flex;flex-wrap:wrap;gap:20px}
+        .pauseSettingsSection{background:rgba(0,0,0,.2);border-radius:16px;padding:20px;flex:1 1 calc(50% - 20px);min-width:280px;border:1px solid rgba(78,205,196,.1)}
+        .pauseSettingsSectionTitle{color:#4ecdc4;font-size:14px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;margin-bottom:15px}
+        .pauseBtnRow{display:flex;gap:20px;justify-content:center;margin-top:30px}
+        #resumeBtn,#pauseMenuBtn{padding:15px 50px;font-size:18px;border:none;border-radius:14px;cursor:pointer;transition:all .3s;font-weight:bold;letter-spacing:1px}
+        #resumeBtn{background:linear-gradient(135deg,#4ecdc4,#44a08d);color:#fff;box-shadow:0 4px 20px rgba(78,205,196,.3)}
         #resumeBtn:hover{transform:scale(1.05);box-shadow:0 6px 30px rgba(78,205,196,.5)}
-        #pauseMenuBtn{
-            background:rgba(255,255,255,.1);
-            color:rgba(255,255,255,.8);
-            border:1px solid rgba(255,255,255,.15);
-        }
+        #pauseMenuBtn{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15)}
         #pauseMenuBtn:hover{transform:scale(1.05);background:rgba(255,255,255,.15)}
-        .clickToClose{
-            color:rgba(255,255,255,.3);
-            font-size:12px;
-            margin-top:20px;
-            text-align:center;
-        }
-
-        /* ============ MISC ============ */
+        .clickToClose{color:rgba(255,255,255,.3);font-size:12px;margin-top:20px;text-align:center}
+        
+        /* Misc */
         #tabWarning{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(255,100,100,.15);border:2px solid #ff6b6b;border-radius:15px;padding:20px 30px;color:#ff6b6b;font-size:14px;font-weight:bold;z-index:160;display:none;text-align:center;backdrop-filter:blur(5px)}
         #fpsCounter{position:fixed;bottom:10px;left:10px;color:rgba(255,255,255,.3);font-size:11px;z-index:50;pointer-events:none}
         #clearSelBtn{position:fixed;bottom:55px;left:50%;transform:translateX(-50%);z-index:55;display:none;padding:7px 18px;border-radius:18px;border:1px solid rgba(255,200,50,.4);background:rgba(0,0,0,.5);color:#ffd700;font-size:11px;font-weight:bold;cursor:pointer;pointer-events:auto;backdrop-filter:blur(4px);transition:all .2s}
         #clearSelBtn:hover{background:rgba(255,200,50,.15);border-color:#ffd700}
         #clearSelBtn:active{transform:translateX(-50%) scale(.92)}
         #modeIndicator{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:55;display:none;padding:5px 14px;border-radius:14px;background:rgba(0,0,0,.45);font-size:10px;font-weight:bold;pointer-events:none;backdrop-filter:blur(4px);letter-spacing:.5px}
-
-        /* ============ NUEVO TEXTO FLOTANTE DE DIFERENCIA ============ */
-        #massDeltaFloating {
-            position: fixed;
-            top: 10px;
-            right: 210px;
-            background: rgba(0,0,0,0.55);
-            color: #4ecdc4;
-            padding: 8px 15px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            z-index: 51;
-            pointer-events: none;
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255,255,255,0.15);
-            text-shadow: 0 0 4px rgba(0,0,0,0.5);
-            min-width: 140px;
-            text-align: center;
-        }
-
-        /* ============ NUEVO GRÁFICO DE 10 SEGUNDOS ============ */
-        #miniGraphContainer {
-            position: fixed;
-            top: 70px;
-            right: 210px;
-            background: rgba(0,0,0,0.55);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 8px;
-            padding: 10px;
-            z-index: 51;
-            pointer-events: none;
-            width: 180px;
-            height: 60px;
-        }
-        #miniScoreGraph {
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.3);
-            border-radius: 4px;
-        }
-
-        /* ============ VOLUME CONTROL ============ */
+        #massDeltaFloating{position:fixed;top:10px;right:210px;background:rgba(0,0,0,0.55);color:#4ecdc4;padding:8px 15px;border-radius:8px;font-size:16px;font-weight:bold;z-index:51;pointer-events:none;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.15);text-shadow:0 0 4px rgba(0,0,0,0.5);min-width:140px;text-align:center}
+        #miniGraphContainer{position:fixed;top:70px;right:210px;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px;z-index:51;pointer-events:none;width:180px;height:60px}
+        #miniScoreGraph{width:100%;height:100%;background:rgba(0,0,0,0.3);border-radius:4px}
         .volumeRow{display:flex;align-items:center;gap:12px;margin-top:8px}
         .volumeRow .volIcon{font-size:18px;cursor:pointer;transition:opacity .2s}
         .volumeRow .volIcon:hover{opacity:.7}
         .volumeRow input[type="range"]{flex:1}
-
-        @media(max-width:600px){
-            #startScreen h1{font-size:48px}
-            .mainMenuBtns{width:280px}
-            .menuBtn{padding:14px 20px;font-size:16px}
-            #playSetupScreen input,#startPlayBtn{max-width:300px}
-            #leaderboard{min-width:140px;padding:8px 12px}
-            #minimap{width:120px;height:120px}
-            #pausePanel{padding:20px}
-            #pauseStats{grid-template-columns:1fr 1fr}
-            #deathStats{gap:10px}
-            #deathStats .stat{min-width:90px;padding:12px 15px}
-            #deathStats .stat .val{font-size:24px}
-            #deathGraphContainer{padding:12px 15px}
-            #deathScoreGraph{height:100px}
-            .settingsBody{padding:15px}
-            #massDeltaFloating {
-                right: 160px;
-                font-size: 14px;
-                padding: 6px 12px;
-                min-width: 120px;
-            }
-            #miniGraphContainer {
-                right: 160px;
-                width: 140px;
-                height: 50px;
-            }
-            #pauseTabStats {
-                flex-direction: column;
-            }
-        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
+    
+    <!-- ============ BOTÓN DE PANTALLA COMPLETA ============ -->
+    <button id="fullscreenBtn">⛶ Pantalla completa</button>
+
+    <!-- ============ CONTROLES MÓVILES ============ -->
+    <div id="joystickContainer">
+        <div class="joystick-base" id="joystickBase">
+            <div class="joystick-thumb" id="joystickThumb"></div>
+        </div>
+    </div>
+    
+    <div id="mobileControls">
+        <button class="mobile-btn split" id="mobileSplit">✧</button>
+        <button class="mobile-btn eject" id="mobileEject">⇧</button>
+    </div>
 
     <!-- ============ START SCREEN ============ -->
     <div id="startScreen">
@@ -595,7 +391,7 @@
         </div>
     </div>
 
-    <!-- ============ SETTINGS SCREEN (REDISEÑADA) ============ -->
+    <!-- ============ SETTINGS SCREEN ============ -->
     <div id="settingsScreen">
         <div class="settingsHeader">
             <button class="settingsBackBtn" id="settingsBackBtn">←</button>
@@ -732,13 +528,10 @@
             </div>
             <button id="startPlayBtn"><span class="menuBtnIcon">▶</span> START GAME</button>
             <div id="controlsInfo">
-                Move: Mouse | Split: Space | Eject: W | Pause: P/Esc<br>
-                Left-click: multi-select cells / BOOST (1.25x speed, -2%/sec)<br>
-                Right-click: single king (locks multi-select)<br>
-                Selected cells can W until death! 💀<br>
-                Mobile: 2-finger split<br><br>
-                🛡️ Bots won't hunt you until you reach 100 mass<br>
-                🤖 Bots can boost and use king strategy!
+                Move: Mouse / Joystick | Split: Space / ✧ | Eject: W / ⇧<br>
+                Left-click: multi-select | Right-click: king mode<br>
+                Mobile: 2-finger split | Boost: hold left-click / move joystick fully<br>
+                🛡️ Bots won't hunt you until 100 mass
             </div>
         </div>
     </div>
@@ -750,9 +543,9 @@
             <div class="killedBy">Eaten by <span id="killerName">???</span></div>
             <div id="deathStats">
                 <div class="stat"><div class="val" id="finalScore">0</div><div class="lbl">Score</div></div>
-                <div class="stat"><div class="val" id="finalMaxScore">0</div><div class="lbl">Peak Score</div></div>
-                <div class="stat"><div class="val" id="finalTime">0:00</div><div class="lbl">Time Alive</div></div>
-                <div class="stat"><div class="val" id="finalCellsEaten">0</div><div class="lbl">Cells Eaten</div></div>
+                <div class="stat"><div class="val" id="finalMaxScore">0</div><div class="lbl">Peak</div></div>
+                <div class="stat"><div class="val" id="finalTime">0:00</div><div class="lbl">Time</div></div>
+                <div class="stat"><div class="val" id="finalCellsEaten">0</div><div class="lbl">Eaten</div></div>
             </div>
             <div id="deathGraphContainer"><h4>📈 Your Journey</h4><canvas id="deathScoreGraph"></canvas></div>
             <div class="deathBtnRow">
@@ -762,7 +555,7 @@
         </div>
     </div>
 
-    <!-- ============ PAUSE SCREEN (REDISEÑADA) ============ -->
+    <!-- ============ PAUSE SCREEN ============ -->
     <button id="pauseBtn">⏸ PAUSE</button>
     <div id="pauseOverlay">
         <div class="pauseContent">
@@ -773,7 +566,6 @@
                     <button class="pauseTab active" data-tab="stats">📊 STATS</button>
                     <button class="pauseTab" data-tab="settings">⚙️ SETTINGS</button>
                 </div>
-                <!-- Stats Tab - Horizontal Layout -->
                 <div class="pauseTabContent active" id="pauseTabStats">
                     <div id="pauseStats">
                         <div class="stat"><div class="val" id="pauseScore">0</div><div class="lbl">Score</div></div>
@@ -785,7 +577,6 @@
                     </div>
                     <div id="graphContainer"><h4>📈 Score History</h4><canvas id="scoreGraph"></canvas></div>
                 </div>
-                <!-- Settings Tab - Horizontal Layout -->
                 <div class="pauseTabContent" id="pauseTabSettings">
                     <div class="pauseSettingsSection">
                         <div class="pauseSettingsSectionTitle">Quality Presets</div>
@@ -905,12 +696,9 @@
         <div id="protectionIndicator">🛡️ Protected until 100 mass</div>
         <div id="boostIndicator">🚀 BOOSTING!</div>
     </div>
-    <!-- ============ LEADERBOARD ============ -->
     <div id="leaderboard" style="display:none"><h3>🏆 Leaderboard</h3><div id="leaderList"></div></div>
-    <!-- ============ NUEVO TEXTO FLOTANTE + MINIGRÁFICO ============ -->
     <div id="massDeltaFloating" style="display:none"></div>
     <div id="miniGraphContainer" style="display:none"><canvas id="miniScoreGraph"></canvas></div>
-
     <canvas id="minimap" style="display:none"></canvas>
     <div id="fpsCounter"></div>
     <div id="modeIndicator"></div>
@@ -920,7 +708,7 @@
     (function(){
         'use strict';
         
-        // ==================== CONFIGURACIÓN MEJORADA ====================
+        // ==================== CONFIGURACIÓN ====================
         const CONFIG = {
             WORLD_RADIUS: 10000,
             FOOD_COUNT: 10000,
@@ -974,7 +762,6 @@
             enabled: true,
             initialized: false,
             
-            // Nodo para el sonido de boost cargado
             boostBuffer: null,
             boostSource: null,
             boostGain: null,
@@ -988,29 +775,20 @@
                     this.masterGain.gain.value = this.volume;
                     this.masterGain.connect(this.ctx.destination);
                     this.initialized = true;
-                    
-                    // Precargar sonido de boost desde CDN
                     this.loadBoostSound();
                 } catch(e) { console.warn('Audio not available'); }
             },
 
-            // Carga un sonido de whoosh real desde un CDN público
             loadBoostSound() {
                 if (!this.ctx) return;
-                const url = 'https://cdn.freesound.org/previews/220/220192_2683866-lq.mp3'; // Whoosh suave
+                const url = 'https://cdn.freesound.org/previews/220/220192_2683866-lq.mp3';
                 fetch(url)
                     .then(response => response.arrayBuffer())
                     .then(arrayBuffer => this.ctx.decodeAudioData(arrayBuffer))
-                    .then(audioBuffer => {
-                        this.boostBuffer = audioBuffer;
-                    })
-                    .catch(err => {
-                        console.warn('No se pudo cargar sonido de boost, usando generador por defecto');
-                        this.generateBoostFallback();
-                    });
+                    .then(audioBuffer => { this.boostBuffer = audioBuffer; })
+                    .catch(err => { this.generateBoostFallback(); });
             },
 
-            // Fallback generado (suave, no molesto)
             generateBoostFallback() {
                 if (!this.ctx) return;
                 const duration = 1.5;
@@ -1019,7 +797,6 @@
                 const data = buffer.getChannelData(0);
                 for (let i = 0; i < data.length; i++) {
                     const t = i / sampleRate;
-                    // Barrido suave de frecuencia
                     const freq = 200 + t * 150;
                     data[i] = Math.sin(2 * Math.PI * freq * t) * 0.15;
                 }
@@ -1033,7 +810,7 @@
             setVolume(v) {
                 this.volume = v;
                 if (this.masterGain) this.masterGain.gain.value = v;
-                if (this.boostGain) this.boostGain.gain.value = v * 0.8; // volumen boost
+                if (this.boostGain) this.boostGain.gain.value = v * 0.8;
             },
 
             _lastPlay: {},
@@ -1044,7 +821,6 @@
                 return true;
             },
 
-            // Sonido de célula comida
             eatCell(mass) {
                 if (!this.enabled || !this.initialized) return;
                 if (!this._canPlay('eatCell', 100)) return;
@@ -1179,19 +955,17 @@
                 o3.stop(t + 0.8);
             },
 
-            // Sonido de boost con buffer cargado (loop)
             startBoostLoop() {
                 if (!this.enabled || !this.initialized) return;
                 if (this.isBoostPlaying) return;
                 if (!this.boostBuffer) {
-                    // Si aún no se ha cargado, intentar generar fallback
                     this.generateBoostFallback();
                     if (!this.boostBuffer) return;
                 }
                 this.resume();
                 
                 this.boostGain = this.ctx.createGain();
-                this.boostGain.gain.value = 0; // empezar en 0 para fade in
+                this.boostGain.gain.value = 0;
                 this.boostGain.connect(this.masterGain);
                 
                 this.boostSource = this.ctx.createBufferSource();
@@ -1201,7 +975,6 @@
                 
                 const now = this.ctx.currentTime;
                 this.boostSource.start(now);
-                // Fade in suave
                 this.boostGain.gain.setValueAtTime(0, now);
                 this.boostGain.gain.linearRampToValueAtTime(this.volume * 0.8, now + 0.1);
                 
@@ -1210,14 +983,10 @@
 
             stopBoostLoop() {
                 if (!this.isBoostPlaying || !this.boostSource || !this.boostGain) return;
-                
                 const now = this.ctx.currentTime;
-                // Fade out suave
                 this.boostGain.gain.cancelScheduledValues(now);
                 this.boostGain.gain.setValueAtTime(this.boostGain.gain.value, now);
                 this.boostGain.gain.linearRampToValueAtTime(0.001, now + 0.1);
-                
-                // Detener después del fade
                 this.boostSource.stop(now + 0.15);
                 this.boostSource = null;
                 this.boostGain = null;
@@ -1294,7 +1063,7 @@
             }
         };
 
-        // ==================== MÚSICA DE FONDO REAL ====================
+        // ==================== MÚSICA ====================
         const MUSIC = {
             ctx: null,
             gainNode: null,
@@ -1303,7 +1072,7 @@
             isPlaying: false,
             volume: 0.4,
             enabled: true,
-            url: 'https://cdn.freesound.org/previews/242/242354_2062787-lq.mp3', // Piano ambient
+            url: 'https://cdn.freesound.org/previews/242/242354_2062787-lq.mp3',
             
             init() {
                 if (this.ctx) return;
@@ -1334,7 +1103,6 @@
                         if (this.enabled && !this.isPlaying) this.start();
                     })
                     .catch(err => {
-                        console.warn('No se pudo cargar la música, usando generador por defecto');
                         this.generateFallbackBuffer();
                     });
             },
@@ -1728,14 +1496,23 @@
         let totalPausedTime = 0;
         let pauseStartTime = 0;
 
-        // ========== VARIABLES PARA EL TEXTO DINÁMICO (AHORA 1000ms) ==========
-        let lastMassSample = 0;                // Última masa registrada
-        let massDelta = 0;                      // Diferencia de masa en el último intervalo
-        let massDeltaTimer = 0;                  // Temporizador para actualizar cada 1000ms
-        const MASS_DELTA_INTERVAL = 1000;         // AHORA 1000ms (1 segundo)
+        // Variables para joystick móvil
+        let joystickActive = false;
+        let joystickVector = { x: 0, y: 0 };
+        let joystickBase = document.getElementById('joystickBase');
+        let joystickThumb = document.getElementById('joystickThumb');
+        let joystickContainer = document.getElementById('joystickContainer');
+        let mobileSplit = document.getElementById('mobileSplit');
+        let mobileEject = document.getElementById('mobileEject');
+
+        // ========== VARIABLES PARA EL TEXTO DINÁMICO ==========
+        let lastMassSample = 0;
+        let massDelta = 0;
+        let massDeltaTimer = 0;
+        const MASS_DELTA_INTERVAL = 1000;
 
         // ========== VARIABLES PARA EL GRÁFICO DE 10 SEGUNDOS ==========
-        let shortScoreHistory = [];               // Almacena los últimos 10 valores (1 por segundo)
+        let shortScoreHistory = [];
         let shortScoreTimer = 0;
         const SHORT_HISTORY_LENGTH = 10;
 
@@ -1796,7 +1573,6 @@
         function drawScoreGraph(){requestAnimationFrame(()=>{resizeScoreGraph();drawScoreGraphGeneric(scoreGraphCanvas,scoreGraphCtx,'#4ecdc4','rgba(78,205,196,0.15)')})}
         function drawDeathGraph(){requestAnimationFrame(()=>{resizeDeathGraph();drawScoreGraphGeneric(deathGraphCanvas,deathGraphCtx,'#ff6b6b','rgba(255,107,107,0.2)')})}
 
-        // ========== FUNCIÓN PARA DIBUJAR EL MINIGRÁFICO DE 10 SEGUNDOS ==========
         function drawMiniScoreGraph() {
             if (!miniGraphCanvas || !miniGraphCtx) return;
             resizeMiniGraph();
@@ -1828,7 +1604,6 @@
             }
             miniGraphCtx.stroke();
             
-            // Punto final
             const lastX = w;
             const lastY = h - ((shortScoreHistory[shortScoreHistory.length-1] - minVal) / range) * (h - 4) - 2;
             miniGraphCtx.fillStyle = '#ff6b6b';
@@ -1924,7 +1699,7 @@
 
         function findCellAtWorld(wx,wy){if(!player||!player.alive)return null;let closest=null,closestD=Infinity;for(const c of player.cells){const d=Math.hypot(c.x-wx,c.y-wy);if(d<c.radius*1.5&&d<closestD){closest=c;closestD=d}}return closest}
         function isCursorOverAnyCell(wx,wy){if(!player||!player.alive||!mouseHasMoved)return false;for(const c of player.cells)if(Math.hypot(c.x-wx,c.y-wy)<c.radius)return true;return false}
-        function updateSelUI(){const btn=document.getElementById('clearSelBtn'),ind=document.getElementById('modeIndicator');if(!player||!player.alive){btn.style.display='none';ind.style.display='none';return}const mode=player.getMode();if(mode==='none'){btn.style.display='none';ind.style.display='none';return}btn.style.display='block';ind.style.display='block';if(mode==='king'){ind.style.color='#ffd700';ind.style.borderColor='rgba(255,215,0,.3)';ind.textContent='👑 KING MODE — Only king controls (can W to death!)'}else{const n=player.getSelectedCount();ind.style.color='#4ecdc4';ind.style.borderColor='rgba(78,205,196,.3)';ind.textContent=`⬡ MULTI-SELECT — ${n} boss${n>1?'es':''} (can W to death!)`}}
+        function updateSelUI(){const btn=document.getElementById('clearSelBtn'),ind=document.getElementById('modeIndicator');if(!player||!player.alive){btn.style.display='none';ind.style.display='none';return}const mode=player.getMode();if(mode==='none'){btn.style.display='none';ind.style.display='none';return}btn.style.display='block';ind.style.display='block';if(mode==='king'){ind.style.color='#ffd700';ind.style.borderColor='rgba(255,215,0,.3)';ind.textContent='👑 KING MODE — Only king controls'}else{const n=player.getSelectedCount();ind.style.color='#4ecdc4';ind.style.borderColor='rgba(78,205,196,.3)';ind.textContent=`⬡ MULTI-SELECT — ${n} boss${n>1?'es':''}`}}
         document.getElementById('clearSelBtn').addEventListener('click',e=>{e.stopPropagation();if(player&&player.alive)player.clearAll()});
 
         function spawnFood(){const pos=randomWorldPos(30);return{x:pos.x,y:pos.y,mass:rand(1,2.5),radius:rand(5,8),color:CONFIG.FOOD_COLORS[randInt(0,CONFIG.FOOD_COLORS.length-1)],sides:randInt(5,10),angle:Math.random()*Math.PI*2}}
@@ -1983,7 +1758,6 @@
         function updateProtectionIndicator(){const ind=document.getElementById('protectionIndicator');if(isPlayerProtected()){ind.classList.add('active');ind.textContent=`🛡️ Protected (${Math.ceil(CONFIG.BOT_IGNORE_PLAYER_BELOW-player.getTotalMass())} mass to go)`}else ind.classList.remove('active')}
         function updateBoostIndicator(){const ind=document.getElementById('boostIndicator');if(isBoosting&&player&&player.alive){ind.classList.add('active');ind.textContent='🚀 BOOSTING! (1.25x speed, -2%/sec)'}else ind.classList.remove('active')}
 
-        // ========== FUNCIÓN PARA ACTUALIZAR EL TEXTO FLOTANTE ==========
         function updateMassDeltaDisplay() {
             const deltaEl = document.getElementById('massDeltaFloating');
             if (!player || !player.alive) {
@@ -1996,6 +1770,110 @@
             const color = massDelta >= 0 ? '#4ecdc4' : '#ff6b6b';
             deltaEl.innerHTML = `<span style="color:${color}">${arrow} ${sign}${Math.floor(massDelta)}</span> last sec`;
         }
+
+        // ==================== JOYSTICK MÓVIL ====================
+        function initJoystick() {
+            if (!joystickBase) return;
+            
+            joystickBase.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (!gameRunning || gamePaused || !player || !player.alive) return;
+                joystickActive = true;
+                handleJoystickTouch(e);
+            }, { passive: false });
+
+            joystickBase.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!joystickActive) return;
+                handleJoystickTouch(e);
+            }, { passive: false });
+
+            joystickBase.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                joystickActive = false;
+                joystickVector = { x: 0, y: 0 };
+                joystickThumb.style.transform = 'translate(0px, 0px)';
+            }, { passive: false });
+
+            function handleJoystickTouch(e) {
+                const touch = e.touches[0];
+                const rect = joystickBase.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                let dx = touch.clientX - centerX;
+                let dy = touch.clientY - centerY;
+                
+                const maxDist = rect.width / 2;
+                const dist = Math.min(maxDist, Math.sqrt(dx*dx + dy*dy));
+                
+                if (dist > 0) {
+                    const angle = Math.atan2(dy, dx);
+                    dx = Math.cos(angle) * dist;
+                    dy = Math.sin(angle) * dist;
+                }
+                
+                joystickThumb.style.transform = `translate(${dx}px, ${dy}px)`;
+                
+                // Normalizar vector (0-1)
+                joystickVector = {
+                    x: dx / maxDist,
+                    y: dy / maxDist
+                };
+                
+                // Activar boost si el joystick está al límite
+                if (player && player.alive && dist > maxDist * 0.85) {
+                    mouseIsDown = true;
+                } else {
+                    mouseIsDown = false;
+                }
+            }
+        }
+
+        // ==================== BOTONES MÓVILES ====================
+        function initMobileButtons() {
+            mobileSplit.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (!gameRunning || gamePaused || !player || !player.alive) return;
+                player.split();
+                SFX.split();
+            }, { passive: false });
+
+            mobileEject.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (!gameRunning || gamePaused || !player || !player.alive) return;
+                player.ejectMass();
+            }, { passive: false });
+        }
+
+        // ==================== PANTALLA COMPLETA ====================
+        function initFullscreen() {
+            const fsBtn = document.getElementById('fullscreenBtn');
+            fsBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                    fsBtn.textContent = '⤬ Salir de pantalla completa';
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                        fsBtn.textContent = '⛶ Pantalla completa';
+                    }
+                }
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+                if (document.fullscreenElement) {
+                    fsBtn.textContent = '⤬ Salir de pantalla completa';
+                } else {
+                    fsBtn.textContent = '⛶ Pantalla completa';
+                }
+            });
+        }
+
+        // Inicializar controles móviles
+        initJoystick();
+        initMobileButtons();
+        initFullscreen();
 
         let botAIOffset=0;
         function gameLoop(ts){if(!gameRunning)return;animFrame=requestAnimationFrame(gameLoop);if(gamePaused){lastTime=ts;return}const dt=Math.min(ts-lastTime,50);lastTime=ts;if(dt<=0)return;globalTime=ts;frameCount++;fpsTimer+=dt;if(fpsTimer>=1000){currentFPS=frameCount;frameCount=0;fpsTimer=0;if(GRAPHICS_CONFIG.showFPS)document.getElementById('fpsCounter').textContent=`FPS: ${currentFPS}`}scoreHistoryTimer+=dt;if(scoreHistoryTimer>=1000&&player&&player.alive){scoreHistory.push({time:getGameTime(),score:player.getTotalMass()});scoreHistoryTimer=0}
@@ -2011,7 +1889,7 @@
                 updateMassDeltaDisplay();
             }
             
-            // ========== ACTUALIZAR HISTORIAL CORTO (10 SEGUNDOS) ==========
+            // ========== ACTUALIZAR HISTORIAL CORTO ==========
             shortScoreTimer += dt;
             if (shortScoreTimer >= 1000) {
                 shortScoreHistory.push(player.getTotalMass());
@@ -2022,7 +1900,6 @@
                 drawMiniScoreGraph();
             }
         } else {
-            // Si el jugador no está vivo, ocultamos los elementos
             lastMassSample = 0;
             massDelta = 0;
             massDeltaTimer = 0;
@@ -2030,17 +1907,48 @@
             document.getElementById('miniGraphContainer').style.display = 'none';
         }
         
-        let canBoost=false;if(player&&player.alive&&mouseIsDown){const w=stw(mouseX,mouseY);if(player.cells.length===1){if(player.getTotalMass()>CONFIG.BOOST_MIN_MASS)canBoost=true}else{if(!isCursorOverAnyCell(w.x,w.y)&&player.getTotalMass()>CONFIG.BOOST_MIN_MASS)canBoost=true}}isBoosting=canBoost;
+        // Detección de boost
+        let canBoost = false;
+        if(player && player.alive) {
+            // Si hay joystick activo y en el límite, ya se activó mouseIsDown
+            // También considerar mouse convencional
+            if (mouseIsDown) {
+                const w = stw(mouseX, mouseY);
+                if(player.cells.length === 1) {
+                    if(player.getTotalMass() > CONFIG.BOOST_MIN_MASS) canBoost = true;
+                } else {
+                    if(!isCursorOverAnyCell(w.x, w.y) && player.getTotalMass() > CONFIG.BOOST_MIN_MASS) canBoost = true;
+                }
+            }
+            
+            // Boost por joystick al límite
+            if (joystickActive && Math.hypot(joystickVector.x, joystickVector.y) > 0.85) {
+                canBoost = true;
+            }
+        }
+        isBoosting = canBoost;
         
-        // Sonido continuo de boost con buffer cargado
-        if(isBoosting&&!wasBoostingLastFrame) {
+        // Sonido continuo de boost
+        if(isBoosting && !wasBoostingLastFrame) {
             SFX.startBoostLoop();
-        } else if(!isBoosting&&wasBoostingLastFrame) {
+        } else if(!isBoosting && wasBoostingLastFrame) {
             SFX.stopBoostLoop();
         }
         wasBoostingLastFrame=isBoosting;
         
-        if(isBoosting&&player&&player.alive){let bossCells=[];for(const c of player.cells)if(player.isBoss(c))bossCells.push(c);if(!bossCells.length)bossCells=[...player.cells];let tbm=0;for(const c of bossCells)tbm+=c.mass;const mc=tbm*CONFIG.BOOST_MASS_PERCENT_PER_SEC*(dt/1000);for(const c of bossCells)c.mass=Math.max(1,c.mass-mc*(c.mass/tbm));let nb=0;for(const c of bossCells)nb+=c.mass;if(nb<CONFIG.BOOST_MIN_MASS)isBoosting=false}for(const bot of bots){if(!bot.alive||!bot.botIsBoosting)continue;let bc=[];for(const c of bot.cells)if(bot.isBoss(c))bc.push(c);if(!bc.length)bc=[...bot.cells];let tbm=0;for(const c of bc)tbm+=c.mass;const mc=tbm*CONFIG.BOOST_MASS_PERCENT_PER_SEC*(dt/1000);for(const c of bc)c.mass=Math.max(1,c.mass-mc*(c.mass/tbm));let nt=0;for(const c of bc)nt+=c.mass;if(nt<CONFIG.BOOST_MIN_MASS){bot.boostDuration=0;bot.boostCooldown=rand(2000,5000)}}if(player&&player.alive){const w=stw(mouseX,mouseY);player.targetX=w.x;player.targetY=w.y}const bpf=Math.max(1,Math.ceil(bots.length*GRAPHICS_CONFIG.botAIPerFrame));for(let i=0;i<bpf;i++){const idx=(botAIOffset+i)%bots.length;if(bots[idx]&&bots[idx].alive)updateBotAI(bots[idx],dt*3)}botAIOffset=(botAIOffset+bpf)%bots.length;if(player&&player.alive)player.move(dt,isBoosting);for(const b of bots)if(b.alive)b.move(dt);const dtF=dt/16.67;for(let i=ejectedMass.length-1;i>=0;i--){const e=ejectedMass[i];e.age+=dt;e.x+=e.vx*dtF;e.y+=e.vy*dtF;e.vx*=.9;e.vy*=.9;const c=constrainToBorder(e.x,e.y,e.radius);e.x=c.x;e.y=c.y;if(e.age>60000)ejectedMass.splice(i,1)}const allE=[];if(player&&player.alive)allE.push(player);for(const b of bots)if(b.alive)allE.push(b);for(const e of allE)checkEating(e);checkVirusFeeding();for(const e of allE)e.updateBounds();for(let i=0;i<allE.length;i++){for(let j=i+1;j<allE.length;j++){const t=allE[i]._extent+allE[j]._extent;const dx=allE[i]._cx-allE[j]._cx,dy=allE[i]._cy-allE[j]._cy;if(dx*dx+dy*dy>t*t)continue;checkEntityVsEntity(allE[i],allE[j])}}if(player&&!player.alive&&!player.cells.length){showDeathScreen();return}if(player&&player.alive){if(player.cells.length<=1)player.clearAll();if(player.kingCell&&!player.cells.includes(player.kingCell))player.kingCell=null}manageViruses(dt);updateParticles(dt);updateCamera();updateSelUI();updateProtectionIndicator();updateBoostIndicator();leaderboardTimer+=dt;if(leaderboardTimer>1000){updateLeaderboard();leaderboardTimer=0}if(player&&player.alive){document.getElementById('scoreDisplay').textContent=`Score: ${Math.floor(player.getTotalMass()).toLocaleString()}`;if(player.cells.length>1){let info=`Cells: ${player.cells.length}/${CONFIG.MAX_CELLS}`;const mode=player.getMode();if(mode==='king')info+=` | 👑 King: ${Math.floor(player.kingCell.mass).toLocaleString()}`;else if(mode==='multi')info+=` | ★ Bosses: ${player.getSelectedCount()}`;document.getElementById('massBreakdown').textContent=info}else document.getElementById('massBreakdown').textContent=''}drawBg();drawGrid();drawBorder();drawFood();drawEjected();drawParts();drawViruses();const ac=[];for(const ent of allE)for(const cell of ent.cells)ac.push({cell,entity:ent});ac.sort((a,b)=>a.cell.mass-b.cell.mass);for(const{cell,entity}of ac)drawCell(cell,entity.name,true);drawMinimap()}
+        if(isBoosting&&player&&player.alive){let bossCells=[];for(const c of player.cells)if(player.isBoss(c))bossCells.push(c);if(!bossCells.length)bossCells=[...player.cells];let tbm=0;for(const c of bossCells)tbm+=c.mass;const mc=tbm*CONFIG.BOOST_MASS_PERCENT_PER_SEC*(dt/1000);for(const c of bossCells)c.mass=Math.max(1,c.mass-mc*(c.mass/tbm));let nb=0;for(const c of bossCells)nb+=c.mass;if(nb<CONFIG.BOOST_MIN_MASS)isBoosting=false}for(const bot of bots){if(!bot.alive||!bot.botIsBoosting)continue;let bc=[];for(const c of bot.cells)if(bot.isBoss(c))bc.push(c);if(!bc.length)bc=[...bot.cells];let tbm=0;for(const c of bc)tbm+=c.mass;const mc=tbm*CONFIG.BOOST_MASS_PERCENT_PER_SEC*(dt/1000);for(const c of bc)c.mass=Math.max(1,c.mass-mc*(c.mass/tbm));let nt=0;for(const c of bc)nt+=c.mass;if(nt<CONFIG.BOOST_MIN_MASS){bot.boostDuration=0;bot.boostCooldown=rand(2000,5000)}}if(player&&player.alive){
+            // Actualizar target: si joystick activo, usar vector
+            if (joystickActive && (joystickVector.x !== 0 || joystickVector.y !== 0)) {
+                // Usar joystick para movimiento
+                const speedFactor = 500; // Factor de escala
+                player.targetX = player.getCenterX() + joystickVector.x * speedFactor;
+                player.targetY = player.getCenterY() + joystickVector.y * speedFactor;
+            } else {
+                const w=stw(mouseX,mouseY);
+                player.targetX=w.x;
+                player.targetY=w.y;
+            }
+        }const bpf=Math.max(1,Math.ceil(bots.length*GRAPHICS_CONFIG.botAIPerFrame));for(let i=0;i<bpf;i++){const idx=(botAIOffset+i)%bots.length;if(bots[idx]&&bots[idx].alive)updateBotAI(bots[idx],dt*3)}botAIOffset=(botAIOffset+bpf)%bots.length;if(player&&player.alive)player.move(dt,isBoosting);for(const b of bots)if(b.alive)b.move(dt);const dtF=dt/16.67;for(let i=ejectedMass.length-1;i>=0;i--){const e=ejectedMass[i];e.age+=dt;e.x+=e.vx*dtF;e.y+=e.vy*dtF;e.vx*=.9;e.vy*=.9;const c=constrainToBorder(e.x,e.y,e.radius);e.x=c.x;e.y=c.y;if(e.age>60000)ejectedMass.splice(i,1)}const allE=[];if(player&&player.alive)allE.push(player);for(const b of bots)if(b.alive)allE.push(b);for(const e of allE)checkEating(e);checkVirusFeeding();for(const e of allE)e.updateBounds();for(let i=0;i<allE.length;i++){for(let j=i+1;j<allE.length;j++){const t=allE[i]._extent+allE[j]._extent;const dx=allE[i]._cx-allE[j]._cx,dy=allE[i]._cy-allE[j]._cy;if(dx*dx+dy*dy>t*t)continue;checkEntityVsEntity(allE[i],allE[j])}}if(player&&!player.alive&&!player.cells.length){showDeathScreen();return}if(player&&player.alive){if(player.cells.length<=1)player.clearAll();if(player.kingCell&&!player.cells.includes(player.kingCell))player.kingCell=null}manageViruses(dt);updateParticles(dt);updateCamera();updateSelUI();updateProtectionIndicator();updateBoostIndicator();leaderboardTimer+=dt;if(leaderboardTimer>1000){updateLeaderboard();leaderboardTimer=0}if(player&&player.alive){document.getElementById('scoreDisplay').textContent=`Score: ${Math.floor(player.getTotalMass()).toLocaleString()}`;if(player.cells.length>1){let info=`Cells: ${player.cells.length}/${CONFIG.MAX_CELLS}`;const mode=player.getMode();if(mode==='king')info+=` | 👑 King: ${Math.floor(player.kingCell.mass).toLocaleString()}`;else if(mode==='multi')info+=` | ★ Bosses: ${player.getSelectedCount()}`;document.getElementById('massBreakdown').textContent=info}else document.getElementById('massBreakdown').textContent=''}drawBg();drawGrid();drawBorder();drawFood();drawEjected();drawParts();drawViruses();const ac=[];for(const ent of allE)for(const cell of ent.cells)ac.push({cell,entity:ent});ac.sort((a,b)=>a.cell.mass-b.cell.mass);for(const{cell,entity}of ac)drawCell(cell,entity.name,true);drawMinimap()}
 
         canvas.addEventListener('mousemove',e=>{mouseX=e.clientX;mouseY=e.clientY;mouseHasMoved=true});
         canvas.addEventListener('mousedown',e=>{if(e.button===0){mouseIsDown=true;if(gamePaused)return;if(player&&player.alive&&player.cells.length>1){if(player.hasKing())return;const w=stw(e.clientX,e.clientY);const cell=findCellAtWorld(w.x,w.y);if(cell)cell.selected=!cell.selected}}});
@@ -2050,6 +1958,7 @@
         canvas.addEventListener('mousedown',e=>{if(gamePaused)return;if(e.button===2&&player&&player.alive&&player.cells.length>1){const w=stw(e.clientX,e.clientY);const cell=findCellAtWorld(w.x,w.y);if(cell){if(player.kingCell===cell)player.kingCell=null;else{for(const c of player.cells)c.selected=false;player.kingCell=cell}}}});
         canvas.addEventListener('touchmove',e=>{e.preventDefault();if(e.touches.length>0){mouseX=e.touches[0].clientX;mouseY=e.touches[0].clientY;mouseHasMoved=true}},{passive:false});
         canvas.addEventListener('touchstart',e=>{e.preventDefault();if(gamePaused)return;if(e.touches.length>0){mouseX=e.touches[0].clientX;mouseY=e.touches[0].clientY;mouseHasMoved=true}if(e.touches.length>=2&&player&&player.alive)player.split()},{passive:false});
+        canvas.addEventListener('touchend',e=>{e.preventDefault();mouseIsDown=false;},{passive:false});
         document.addEventListener('keydown',e=>{if(e.code==='KeyP'||(e.code==='Escape'&&gameRunning&&player&&player.alive)){if(e.code==='Escape'&&!gamePaused&&player&&player.alive){const mode=player.getMode();if(mode!=='none'){player.clearAll();e.preventDefault();return}}if(gameRunning&&player&&player.alive){e.preventDefault();togglePause();return}}if(gamePaused)return;if(!player||!player.alive)return;if(e.code==='Space'){e.preventDefault();player.split()}if(e.code==='KeyW'){e.preventDefault();if(wBlockedUntilRelease)return;const sacrificed=player.ejectMass();if(sacrificed)wBlockedUntilRelease=true}});
         document.addEventListener('keyup',e=>{if(e.code==='KeyW')wBlockedUntilRelease=false});
         canvas.addEventListener('contextmenu',e=>e.preventDefault());
@@ -2071,13 +1980,11 @@
             gameStartTime=performance.now();
             scoreHistory=[{time:0,score:CONFIG.STARTING_MASS}];
             
-            // Inicializar variables de masa dinámica
             lastMassSample = player.getTotalMass();
             massDelta = 0;
             massDeltaTimer = 0;
             updateMassDeltaDisplay();
             
-            // Inicializar historial corto
             shortScoreHistory = [player.getTotalMass()];
             shortScoreTimer = 0;
             
