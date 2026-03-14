@@ -1,3 +1,4 @@
+html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -192,69 +193,101 @@
 
         /* ============ MOBILE CONTROLS (BOTONES TÁCTILES) ============ */
         #mobileControls {
-            display: none; position: fixed; bottom: 20px; left: 20px; right: 20px; pointer-events: none; z-index: 55;
+            display: none; position: fixed; bottom: 15px; left: 15px; right: 15px; pointer-events: none; z-index: 55;
             justify-content: space-between; align-items: flex-end;
         }
         .mBtn {
-            pointer-events: auto; background: rgba(10,10,30,0.6); border: 2px solid rgba(255,255,255,0.25);
-            border-radius: 50%; width: 65px; height: 65px; color: rgba(255,255,255,0.9); font-size: 11px; font-weight: bold;
-            backdrop-filter: blur(8px); display: flex; flex-direction: column; justify-content: center; align-items: center;
-            line-height: 1.3; box-shadow: 0 5px 20px rgba(0,0,0,0.6); transition: all 0.1s; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 0.5px;
+            pointer-events: auto; background: rgba(10,10,30,0.3); border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 50%; width: 55px; height: 55px; color: rgba(255,255,255,0.9);
+            backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4); transition: all 0.1s; cursor: pointer;
+            opacity: 0.8;
         }
-        .mBtn .icon { font-size: 24px; margin-bottom: 2px; }
-        .mBtn:active, .mBtn.active { background: rgba(78,205,196,0.4); border-color: #4ecdc4; transform: scale(0.9); box-shadow: 0 2px 10px rgba(78,205,196,0.5); }
-        .mBtn.danger { border-color: rgba(255,107,107,0.4); }
-        .mBtn.danger:active, .mBtn.danger.active { background: rgba(255,107,107,0.4); border-color: #ff6b6b; box-shadow: 0 2px 10px rgba(255,107,107,0.5); }
-        .mBtn.warning { border-color: rgba(254,202,87,0.4); }
-        .mBtn.warning:active { background: rgba(254,202,87,0.4); border-color: #feca57; box-shadow: 0 2px 10px rgba(254,202,87,0.5); }
+        .mBtn .icon { font-size: 24px; }
+        .mBtn:active, .mBtn.active { opacity: 1; background: rgba(78,205,196,0.6); border-color: #4ecdc4; transform: scale(0.9); box-shadow: 0 2px 10px rgba(78,205,196,0.5); }
+        .mBtn.danger { border-color: rgba(255,107,107,0.3); }
+        .mBtn.danger:active, .mBtn.danger.active { opacity: 1; background: rgba(255,107,107,0.6); border-color: #ff6b6b; box-shadow: 0 2px 10px rgba(255,107,107,0.5); }
+        .mBtn.warning { border-color: rgba(254,202,87,0.3); }
+        .mBtn.warning:active { opacity: 1; background: rgba(254,202,87,0.6); border-color: #feca57; box-shadow: 0 2px 10px rgba(254,202,87,0.5); }
         
-        #mLeftControls { display: flex; flex-direction: column; }
+        #mLeftControls { display: flex; flex-direction: column; align-items: flex-start; gap: 15px; }
         #mRightControls { display: flex; flex-direction: column; align-items: flex-end; gap: 15px; }
-        .mBtnRow { display: flex; gap: 15px; }
+        
+        /* Botón Split más grande */
+        #mobileSplit { width: 75px; height: 75px; }
+        #mobileSplit .icon { font-size: 34px; }
 
-        /* ============ AJUSTES MOBILE / LANDSCAPE ============ */
+        /* ============ AJUSTES MOBILE / LANDSCAPE MÁS COMPACTOS ============ */
         @media (max-width: 900px) {
-            #startScreen h1{font-size:42px}
-            .subtitle{margin-bottom:20px}
-            .mainMenuBtns{flex-direction:row; width:auto; gap:15px;}
-            .menuBtn{padding:12px 20px; font-size:15px; min-width: 140px;}
-            .settingsBody{padding:15px; gap: 15px;}
-            .settingsSection{padding:15px 20px; min-width:250px;}
-            .configRow{margin-bottom: 8px;}
-            #playSetupScreen .setupBody{flex-direction:row; flex-wrap:wrap; padding:15px;}
-            .setupSection{margin-bottom:0; max-width:100%;}
-            #startPlayBtn{padding:14px; font-size:18px;}
-            #pauseOverlay h2{font-size:38px;}
-            .pauseContent{padding:15px;}
-            #pausePanel{padding:20px;}
-            .pauseTabs{margin-bottom:15px;}
-            .pauseTab{padding:10px 25px; font-size:13px;}
-            #pauseStats{grid-template-columns:1fr 1fr 1fr; gap:10px;}
-            #pauseStats .stat{padding:10px;}
-            #pauseStats .stat .val{font-size:20px;}
-            #scoreGraph{height:120px;}
-            .pauseSettingsSection{padding:15px; min-width: 200px;}
-            .pauseBtnRow{margin-top:15px;}
-            #resumeBtn,#pauseMenuBtn{padding:12px 30px; font-size:15px;}
-
-            /* Re-organizar HUD para dejar espacio a los controles inferiores */
-            #minimap{top:10px; bottom:auto; right:10px; width:110px; height:110px;}
-            #leaderboard{top:130px; right:10px; padding:8px 10px; font-size:11px; min-width:130px;}
-            #leaderboard h3{font-size: 13px; margin-bottom: 5px;}
-            #miniGraphContainer {top: 285px; right: 10px; width: 130px; height: 45px;}
-            #massDeltaFloating {top: 245px; right: 10px; font-size: 13px; padding: 6px 10px; min-width: 100px;}
-            #fpsCounter{top:10px; left:10px; bottom:auto;}
-            #clearSelBtn{bottom:110px;}
-            #modeIndicator{bottom:140px;}
-            #hud{top: 15px;}
+            /* General Modals & Text */
+            #startScreen h1 { font-size: 32px; letter-spacing: 2px; }
+            .subtitle { font-size: 11px; margin-bottom: 20px; }
+            .mainMenuBtns { flex-direction: row; width: auto; gap: 10px; }
+            .menuBtn { padding: 10px 15px; font-size: 13px; min-width: 120px; }
             
-            #deathScreen h2{font-size: 40px;}
-            #deathStats{gap:10px;}
-            #deathStats .stat{min-width:90px; padding:12px;}
-            #deathStats .stat .val{font-size:24px;}
-            #deathScoreGraph{height:90px;}
-            #deathGraphContainer{margin-bottom: 15px;}
+            .settingsHeader, .pauseHeader { padding: 10px 15px; }
+            .settingsTitle, #pauseOverlay h2 { font-size: 24px; margin: 0; }
+            .settingsBackBtn { font-size: 22px; padding: 2px 10px; }
+            
+            .settingsBody, .setupBody, .pauseContent { padding: 10px; gap: 8px; max-height: 85vh; overflow-y: auto; align-content: flex-start; }
+            .settingsSection, .pauseSettingsSection, .setupSection { padding: 10px 15px; flex: 1 1 calc(50% - 10px); min-width: 200px; margin: 0; }
+            .settingsSectionTitle, .pauseSettingsSectionTitle, .setupSectionTitle { font-size: 12px; margin-bottom: 8px; }
+            .configRow { font-size: 12px; margin-bottom: 6px; }
+            .configRow select { min-width: 80px; padding: 4px 8px; font-size: 11px; }
+            .configRow input[type="range"] { width: 100px; height: 16px; }
+            
+            /* Setup Screen */
+            #playSetupScreen .setupBody { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; }
+            #playSetupScreen input { font-size: 14px; padding: 10px; }
+            #skinSelector { gap: 4px; }
+            .skinOption { width: 30px; height: 30px; }
+            .botCountDisplay { font-size: 20px; }
+            #startPlayBtn { flex: 1 1 100%; padding: 12px; font-size: 16px; margin: 0; }
+            #controlsInfo { display: none; } /* Ocultar info en móvil para ahorrar espacio */
+
+            /* Pause Screen */
+            #pauseOverlay .pauseSubtitle { font-size: 11px; margin-bottom: 10px; }
+            #pausePanel { padding: 15px; border-radius: 16px; max-height: 85vh; overflow-y: auto; }
+            .pauseTabs { margin-bottom: 10px; }
+            .pauseTab { padding: 8px 20px; font-size: 12px; }
+            #pauseTabStats { flex-direction: column; gap: 10px; }
+            #pauseStats { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+            #pauseStats .stat { padding: 8px; border-radius: 8px; }
+            #pauseStats .stat .val { font-size: 16px; }
+            #graphContainer { padding: 10px; border-radius: 10px; }
+            #scoreGraph { height: 70px; }
+            .pauseBtnRow { margin-top: 15px; gap: 10px; }
+            #resumeBtn, #pauseMenuBtn { padding: 10px 25px; font-size: 14px; }
+            .clickToClose { display: none; } /* Ocultar para ahorrar espacio */
+
+            /* Death Screen */
+            #deathScreen h2 { font-size: 32px; margin-bottom: 5px; }
+            #deathScreen .killedBy { font-size: 13px; margin-bottom: 10px; }
+            #deathStats { gap: 8px; margin-bottom: 15px; }
+            #deathStats .stat { min-width: 70px; padding: 10px; }
+            #deathStats .stat .val { font-size: 20px; }
+            #deathGraphContainer { padding: 12px; margin-bottom: 15px; }
+            #deathScoreGraph { height: 60px; }
+            .deathBtnRow { gap: 10px; margin-top: 0; }
+
+            /* HUD Re-organizado */
+            #hud { top: 5px; font-size: 12px; }
+            #scoreDisplay { font-size: 14px; padding: 4px 12px; }
+            #massBreakdown { font-size: 10px; }
+            
+            #minimap { width: 85px; height: 85px; right: 5px; top: 5px; bottom: auto; border: 1px solid rgba(255,255,255,0.1); }
+            #leaderboard { top: 95px; right: 5px; padding: 6px; font-size: 10px; min-width: 120px; }
+            #leaderboard h3 { font-size: 11px; margin-bottom: 4px; padding-bottom: 4px; }
+            .leaderEntry { padding: 1px 0; }
+            /* Ocultar a partir del 6to lugar en móvil para ganar espacio en altura */
+            .leaderEntry:nth-child(n+6) { display: none; }
+            
+            #fpsCounter { left: 5px; top: 5px; font-size: 10px; bottom: auto; }
+            #clearSelBtn { bottom: 100px; padding: 5px 12px; font-size: 10px; }
+            #modeIndicator { bottom: 125px; padding: 4px 10px; font-size: 9px; }
+
+            /* Elementos Ocultos en Móvil por espacio */
+            #miniGraphContainer, #massDeltaFloating { display: none !important; }
         }
     </style>
 </head>
@@ -268,29 +301,15 @@
 
     <canvas id="gameCanvas"></canvas>
 
-    <!-- ============ CONTROLES MÓVILES (Ocultos en PC) ============ -->
+    <!-- ============ CONTROLES MÓVILES (Ocultos en PC, reordenados ergonómicamente) ============ -->
     <div id="mobileControls">
         <div id="mLeftControls">
-            <div class="mBtn" id="mobileBoost">
-                <span class="icon">🚀</span>
-                <span>Boost</span>
-            </div>
+            <div class="mBtn warning" id="mobileKing"><span class="icon">👑</span></div>
+            <div class="mBtn" id="mobileBoost"><span class="icon">🚀</span></div>
         </div>
         <div id="mRightControls">
-            <div class="mBtnRow">
-                <div class="mBtn warning" id="mobileKing">
-                    <span class="icon">👑</span>
-                    <span>King</span>
-                </div>
-                <div class="mBtn danger" id="mobileEject">
-                    <span class="icon">💢</span>
-                    <span>Eject</span>
-                </div>
-            </div>
-            <div class="mBtn" id="mobileSplit" style="width: 85px; height: 85px; border-radius: 50%; font-size: 13px;">
-                <span class="icon" style="font-size: 32px;">⭕</span>
-                <span>Split</span>
-            </div>
+            <div class="mBtn danger" id="mobileEject"><span class="icon">💢</span></div>
+            <div class="mBtn" id="mobileSplit"><span class="icon">⭕</span></div>
         </div>
     </div>
 
@@ -304,7 +323,7 @@
                 <button class="menuBtn primary" id="playMenuBtn"><span class="menuBtnIcon">▶</span>PLAY</button>
                 <button class="menuBtn secondary" id="settingsMenuBtn"><span class="menuBtnIcon">⚙️</span>SETTINGS</button>
             </div>
-            <div id="startVersion">v2.1 • Built with ❤️</div>
+            <div id="startVersion">v2.2 • Built with ❤️</div>
         </div>
     </div>
 
@@ -319,7 +338,7 @@
                 <div class="settingsSectionTitle"><span class="icon">🎨</span> Quality Presets</div>
                 <div class="qualityPreset">
                     <button class="qualityBtn low" data-quality="low">LOW</button>
-                    <button class="qualityBtn medium active" data-quality="medium">MEDIUM</button>
+                    <button class="qualityBtn medium active" data-quality="medium">MED</button>
                     <button class="qualityBtn high" data-quality="high">HIGH</button>
                     <button class="qualityBtn ultra" data-quality="ultra">ULTRA</button>
                 </div>
@@ -378,8 +397,8 @@
                 <div class="configRow">
                     <span class="label">Food detail</span>
                     <select id="foodDetail">
-                        <option value="0">Minimal (circles)</option>
-                        <option value="1" selected>Normal (polygons)</option>
+                        <option value="0">Minimal</option>
+                        <option value="1" selected>Normal</option>
                     </select>
                 </div>
                 <div class="configRow">
@@ -428,7 +447,7 @@
         <div class="setupBody">
             <div class="setupSection">
                 <div class="setupSectionTitle">👤 Your Identity</div>
-                <input type="text" id="nameInput" placeholder="Enter your nickname..." maxlength="15" autocomplete="off">
+                <input type="text" id="nameInput" placeholder="Nickname..." maxlength="15" autocomplete="off">
                 <div id="skinSelector"></div>
             </div>
             <div class="setupSection">
@@ -506,7 +525,7 @@
                     <div class="pauseSettingsSection">
                         <div class="pauseSettingsSectionTitle">Audio</div>
                         <div class="configRow">
-                            <span class="label">Master Volume</span>
+                            <span class="label">Master Vol</span>
                             <input type="range" id="pauseMasterVolume" min="0" max="1" step="0.05" value="0.5">
                             <span class="val" id="pauseMasterVolumeVal">50%</span>
                         </div>
@@ -532,7 +551,7 @@
                             <span class="val" id="pauseBotAIVal">33%</span>
                         </div>
                         <div class="configRow">
-                            <span class="label">Particle density</span>
+                            <span class="label">Particle den</span>
                             <input type="range" id="pauseParticles" min="0.1" max="2.0" step="0.1" value="1.0">
                             <span class="val" id="pauseParticlesVal">100%</span>
                         </div>
